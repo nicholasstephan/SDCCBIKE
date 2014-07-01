@@ -30,6 +30,7 @@
   <google-map 
     center="map.center" 
     zoom="map.zoom"
+    options="map.options"
     control="map.control"
     pan="true">
   </google-map>
@@ -38,60 +39,80 @@
       angular.module('App', ['firebase', 'google-maps']);
 
       function AppCtrl($scope, $firebase) {
-        var ref = new Firebase("https://sdccbikeclub.firebaseio.com");
+        var ref = new Firebase("https://sdccbikeclub.firebaseio.com/locations");
         var base = $firebase(ref);
 
         $scope.map = {
           center: {
-            latitude: 45,
-            longitude: -73
+            latitude: 32.7442472,
+            longitude: -117.1608483
           },
-          zoom: 10,
+          options: {
+            streetViewControl: false
+          },
+          zoom: 17,
           control: {}
         };
 
-        // Your app must execute AT LEAST ONE call for the current position via standard Cordova geolocation,
-        //  in order to prompt the user for Location permission.
-        window.navigator.geolocation.getCurrentPosition(function(location) {
-          console.log('Location from Phonegap', location);
-        });
-
-        var bgGeo = window.plugins.backgroundGeoLocation;
-
-        //This callback will be executed every time a geolocation is recorded in the background.
-        var callbackFn = function(location) {
-          console.log('[js] BackgroundGeoLocation callback:  ' + location.latitudue + ',' + location.longitude);
-          
-          // Do your HTTP request here to POST location to your server.
-          
-          // IMPORTANT:  You must execute the #finish method here to inform the native plugin that you're finished,
-          // and the background-task may be completed.  You must do this regardless if your HTTP request is successful or not.
-          // IF YOU DON'T, ios will CRASH YOUR APP for spending too much time in the background.
-          bgGeo.finish();
+        var postCoords = function(coords) {
+          console.log('adding', coords);
+          $scope.map.control.refresh(coords);
+          coords.time = Date.now()
+          base.$add(coords);
         };
 
-        var failureFn = function(error) {
-          console.log('BackgroundGeoLocation error');
-        }
-
-        // BackgroundGeoLocation is highly configurable.
-        bgGeo.configure(callbackFn, failureFn, {
-          url: 'http://only.for.android.com/update_location.json', // <-- only required for Android; ios allows javascript callbacks for your http
-          params: {                                                // HTTP POST params sent to your server when persisting locations.
-            auth_token: 'user_secret_auth_token'
-            foo: 'bar'
-          },
-          desiredAccuracy: 10,
-          stationaryRadius: 20,
-          distanceFilter: 30,
-          debug: true // <-- enable this hear sounds for background-geolocation life-cycle.
+        // Your app must execute AT LEAST ONE call for the current position via standard Cordova geolocation,
+        // in order to prompt the user for Location permission.
+        window.navigator.geolocation.getCurrentPosition(function(location) {
+          postCoords({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+          });
         });
 
-        // Turn ON the background-geolocation system.  The user will be tracked whenever they suspend the app.
-        bgGeo.start();
+        if(window.plugins) {
 
-        // If you wish to turn OFF background-tracking, call the #stop method.
-        // bgGeo.stop()
+          var bgGeo = window.plugins.backgroundGeoLocation;
+
+          //This callback will be executed every time a geolocation is recorded in the background.
+          var callbackFn = function(location) {
+            console.log('[js] BackgroundGeoLocation callback:  ' + location.latitude + ',' + location.longitude);
+            
+            // Do your HTTP request here to POST location to your server.
+            postCoords({
+              latitude: location.latitude,
+              longitude: location.longitude
+            });
+            
+            // IMPORTANT:  You must execute the #finish method here to inform the native plugin that you're finished,
+            // and the background-task may be completed.  You must do this regardless if your HTTP request is successful or not.
+            // IF YOU DON'T, ios will CRASH YOUR APP for spending too much time in the background.
+            bgGeo.finish();
+          };
+
+          var failureFn = function(error) {
+            console.log('BackgroundGeoLocation error');
+          }
+
+          // BackgroundGeoLocation is highly configurable.
+          bgGeo.configure(callbackFn, failureFn, {
+            url: 'http://only.for.android.com/update_location.json', // <-- only required for Android; ios allows javascript callbacks for your http
+            params: {                                                // HTTP POST params sent to your server when persisting locations.
+              auth_token: 'user_secret_auth_token',
+              foo: 'bar'
+            },
+            desiredAccuracy: 5,
+            stationaryRadius: 20,
+            distanceFilter: 30,
+            debug: true // <-- enable this hear sounds for background-geolocation life-cycle.
+          });
+
+          // Turn ON the background-geolocation system.  The user will be tracked whenever they suspend the app.
+          bgGeo.start();
+
+          // If you wish to turn OFF background-tracking, call the #stop method.
+          // bgGeo.stop()
+        }
       }
 
     </script>
