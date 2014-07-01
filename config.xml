@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<widget xmlns   = "http://www.w3.org/ns/widgets"
+        xmlns:gap   = "http://phonegap.com/ns/1.0"
+        id          = "com.phonegap.example"
+        versionCode = "10" 
+        version     = "1.0.0" >
+
+    <name>SDCC BIKE</name>
+
+    <description>
+        A companion application for the SDCC Bike Club.
+    </description>
+
+    <author href="http://nicholasstephan.com" email="nicholas.stephan@gmail.com">
+        Nicholas Stephan
+    </author>
+
+    <gap:platform name="ios" />
+    <gap:platform name="android" />
+
+    <preference name="phonegap-version" value="3.4.0" />
+
+    <!-- lock to portrait -->
+    <preference name="orientation" value="portrait" />
+
+    <!-- remove the status bar -->
+    <preference name="fullscreen" value="true" />
+    <preference name="UIViewControllerBasedStatusBarAppearance" value="false" />
+    <preference name="UIStatusBarHidden" value="true" />
+
+
+    <!-- only phones -->
+    <preference name="target-device" value="handset" />
+
+
+    <!-- location plugin -->
+    <gap:plugin name="org.transistorsoft.cordova.background-geolocation" version="0.2.0" />
+
+
+</widget>
